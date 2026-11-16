@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Employee Information</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--muted:#5b6b82;--line:#d5dde8;--accent:#2a6f97;--accent-dark:#1d526f;--head:#14213d;--err:#b3261e;}
+*{box-sizing:border-box}
+body{margin:0;padding:32px 20px;background:var(--bg);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto}
+h1{margin:0 0 4px;font-size:1.7rem;letter-spacing:-.01em}
+.sub{margin:0 0 20px;color:var(--muted)}
+.bar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.bar input[type=search]{flex:1;min-width:220px;max-width:340px;padding:10px 12px;font:inherit;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.bar input:focus{outline:3px solid rgba(42,111,151,.25);border-color:var(--accent)}
+.count{color:var(--muted);font-size:.9rem;font-weight:600}
+.table-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow-x:auto;box-shadow:0 8px 30px rgba(20,33,61,.07)}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:13px 16px;text-align:left;white-space:nowrap}
+thead th{background:var(--head);color:#fff;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none}
+thead th:hover{background:#1f3158}
+thead th .arrow{opacity:.7;margin-left:6px}
+tbody tr:nth-child(even){background:#f5f8fb}
+tbody tr:hover{background:#e6f0f7}
+tbody td{border-top:1px solid var(--line)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+th.num{text-align:right}
+.dept{display:inline-block;padding:3px 10px;border-radius:999px;background:#e3eef6;color:var(--accent-dark);font-size:.82rem;font-weight:700}
+.status{padding:28px;text-align:center;color:var(--muted)}
+.error{color:var(--err);font-weight:600}
+.loader{margin-top:14px;display:none;background:#fff;border:1.5px dashed var(--line);border-radius:10px;padding:18px}
+.loader.show{display:block}
+.loader p{margin:0 0 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Employee Information</h1>
+  <p class="sub">Data is read from <code>employees.xml</code> and shown as a table.</p>
+
+  <div class="bar">
+    <input type="search" id="search" placeholder="Search name, department, city..." aria-label="Search employees">
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead id="thead"></thead>
+      <tbody id="tbody"><tr><td class="status">Loading employee data...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="loader" id="loader">
+    <p><span class="error">Couldn't load employees.xml automatically.</span> Browsers block this when a page is opened straight from a folder. Pick the file manually, or run a local server (for example <code>python -m http.server</code>).</p>
+    <input type="file" id="fileInput" accept=".xml,text/xml">
+  </div>
+</div>
+
+<script>
+let rows = [];          // array of objects, one per <employee>
+let columns = [];       // tag names, taken from the first <employee>
+let sortKey = null, sortAsc = true;
+
+const labels = {id:"ID", name:"Name", designation:"Designation", department:"Department",
+                salary:"Salary (₹)", city:"City", joiningDate:"Joining Date"};
+const label = k => labels[k] || k;
+
+// ---- 1. Read the XML ----
+function loadFromUrl(url){
+  fetch(url)
+    .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(parseXML)
+    .catch(() => {
+      document.getElementById("tbody").innerHTML =
+        '<tr><td class="status">No data loaded yet.</td></tr>';
+      document.getElementById("loader").classList.add("show");
+    });
+}
+
+// ---- 2. Parse XML into plain objects ----
+function parseXML(text){
+  const doc = new DOMParser().parseFromString(text, "application/xml");
+  if(doc.querySelector("parsererror")){
+    document.getElementById("tbody").innerHTML =
+      '<tr><td class="status error">The XML file is not valid.</td></tr>';
+    return;
+  }
+  const items = Array.from(doc.getElementsByTagName("employee"));
+  rows = items.map(emp => {
+    const obj = {};
+    Array.from(emp.children).forEach(c => obj[c.tagName] = c.textContent.trim());
+    return obj;
+  });
+  columns = items.length ? Array.from(items[0].children).map(c => c.tagName) : [];
+  document.getElementById("loader").classList.remove("show");
+  render();
+}
+
+// ---- 3. Draw the table ----
+function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+const isNum = k => k === "id" || k === "salary";
+
+function formatCell(k, v){
+  if(k === "salary") return Number(v).toLocaleString("en-IN");
+  if(k === "joiningDate"){
+    const d = new Date(v);
+    return isNaN(d) ? esc(v) : d.toLocaleDateString("en-GB", {day:"2-digit", month:"short", year:"numeric"});
+  }
+  if(k === "department") return '<span class="dept">' + esc(v) + '</span>';
+  return esc(v);
+}
+
+function render(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  let list = rows.filter(r => Object.values(r).some(v => v.toLowerCase().includes(q)));
+
+  if(sortKey){
+    list.sort((a, b) => {
+      const x = a[sortKey], y = b[sortKey];
+      const c = isNum(sortKey) ? Number(x) - Number(y) : x.localeCompare(y);
+      return sortAsc ? c : -c;
+    });
+  }
+
+  document.getElementById("thead").innerHTML = "<tr>" + columns.map(k =>
+    '<th class="' + (isNum(k) && k === "salary" ? "num" : "") + '" data-key="' + k + '">' + label(k) +
+    '<span class="arrow">' + (sortKey === k ? (sortAsc ? "▲" : "▼") : "↕") + '</span></th>').join("") + "</tr>";
+
+  document.getElementById("tbody").innerHTML = list.length
+    ? list.map(r => "<tr>" + columns.map(k =>
+        '<td class="' + (k === "salary" ? "num" : "") + '">' + formatCell(k, r[k] || "") + "</td>").join("") + "</tr>").join("")
+    : '<tr><td class="status" colspan="' + (columns.length || 1) + '">No matching employees.</td></tr>';
+
+  document.getElementById("count").textContent = list.length + " of " + rows.length + " employees";
+}
+
+// ---- 4. Events ----
+document.getElementById("search").addEventListener("input", render);
+
+document.getElementById("thead").addEventListener("click", e => {
+  const th = e.target.closest("th");
+  if(!th) return;
+  const k = th.dataset.key;
+  sortAsc = (sortKey === k) ? !sortAsc : true;
+  sortKey = k;
+  render();
+});
+
+document.getElementById("fileInput").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if(f) f.text().then(parseXML);
+});
+
+loadFromUrl("employees.xml");
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<employees>
+  <employee>
+    <id>101</id>
+    <name>Aarav Mehta</name>
+    <designation>Software Engineer</designation>
+    <department>Engineering</department>
+    <salary>780000</salary>
+    <city>Bengaluru</city>
+    <joiningDate>2021-06-14</joiningDate>
+  </employee>
+  <employee>
+    <id>102</id>
+    <name>Diya Nair</name>
+    <designation>Data Analyst</designation>
+    <department>Analytics</department>
+    <salary>650000</salary>
+    <city>Kochi</city>
+    <joiningDate>2022-01-10</joiningDate>
+  </employee>
+  <employee>
+    <id>103</id>
+    <name>Rohan Verma</name>
+    <designation>Project Manager</designation>
+    <department>Operations</department>
+    <salary>1250000</salary>
+    <city>Pune</city>
+    <joiningDate>2019-09-02</joiningDate>
+  </employee>
+  <employee>
+    <id>104</id>
+    <name>Sneha Iyer</name>
+    <designation>UI/UX Designer</designation>
+    <department>Design</department>
+    <salary>720000</salary>
+    <city>Chennai</city>
+    <joiningDate>2020-11-23</joiningDate>
+  </employee>
+  <employee>
+    <id>105</id>
+    <name>Kabir Singh</name>
+    <designation>ML Engineer</designation>
+    <department>Engineering</department>
+    <salary>980000</salary>
+    <city>Hyderabad</city>
+    <joiningDate>2021-03-17</joiningDate>
+  </employee>
+  <employee>
+    <id>106</id>
+    <name>Meera Joshi</name>
+    <designation>HR Executive</designation>
+    <department>Human Resources</department>
+    <salary>520000</salary>
+    <city>Mumbai</city>
+    <joiningDate>2023-02-06</joiningDate>
+  </employee>
+  <employee>
+    <id>107</id>
+    <name>Arjun Reddy</name>
+    <designation>QA Engineer</designation>
+    <department>Engineering</department>
+    <salary>590000</salary>
+    <city>Bengaluru</city>
+    <joiningDate>2022-08-29</joiningDate>
+  </employee>
+  <employee>
+    <id>108</id>
+    <name>Priya Das</name>
+    <designation>Accountant</designation>
+    <department>Finance</department>
+    <salary>610000</salary>
+    <city>Kolkata</city>
+    <joiningDate>2020-05-18</joiningDate>
+  </employee>
+</employees>
